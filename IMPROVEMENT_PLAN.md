@@ -1,0 +1,12 @@
+# Completion plan
+
+1. Rename/reframe the repository in documentation because `git` is not a Git implementation: the code under `app/` is a Next.js partner-directory/integration site with partner tiles, expert/integration pages, partner detail and Supabase client setup.
+2. Establish project provenance and product identity from README/page copy before portfolio use. A generic repository name obscures purpose and creates search/confusion with Git tooling; document the intended product name and canonical deployment.
+3. Audit Supabase usage in `app/lib/supabase.ts` and partner submission/data flows. Browser anon keys are acceptable only with correct Row Level Security; never expose service-role credentials and ensure partner creation/editing cannot bypass authorization.
+4. Audit `BecomeAPartner.tsx`: validate/sanitize fields server-side, add spam/rate protection, explicit consent/privacy handling and deterministic success/error/retry states. Do not write untrusted submissions directly into publicly rendered partner content without moderation.
+5. Define a typed partner schema: slug, category (expert/integration/etc.), name, description, URL, logo/media, geography and publication/moderation status. Enforce unique safe slugs and reject unsafe external URL protocols.
+6. Harden dynamic `pages/partners/[slug].tsx`: return real 404 for unknown/unpublished records, escape/sanitize content, use safe external-link attributes and avoid leaking private submission/moderation fields into static props/client payloads.
+7. Review `Countries.json` and partner geography behavior: document data source, normalize country codes and avoid presenting country availability/coverage unless it is genuinely associated with verified partner records.
+8. Audit the large custom font bundle and all media/license provenance. Keep font licensing documentation internal to the repo; optimize loading/subsets and do not distribute fonts whose license does not permit repository redistribution.
+9. Add tests for partner validation/slugging, submission authorization/RLS assumptions, unpublished/404 behavior and expert/integration filtering. CI runs lint/typecheck/tests and Next.js production build from the `app` working directory.
+10. Rewrite root README as verified partner-directory documentation: correct product name, architecture, Supabase/RLS model, submission/moderation flow, categories, local env/setup, deployment and limitations; explicitly explain why source lives under `app/`.
