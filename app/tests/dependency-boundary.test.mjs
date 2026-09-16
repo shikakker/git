@@ -5,6 +5,7 @@ import test from 'node:test'
 const pkg = JSON.parse(
   await readFile(new URL('../package.json', import.meta.url), 'utf8')
 )
+const nextConfig = await readFile(new URL('../next.config.js', import.meta.url), 'utf8')
 
 test('partner gallery uses a patched supported Next runtime', () => {
   assert.equal(pkg.dependencies?.next, '15.5.24')
@@ -23,4 +24,10 @@ test('deprecated React 17-only Supabase UI package is removed', () => {
 
 test('used Swiper carousel is upgraded beyond the vulnerable range', () => {
   assert.equal(pkg.dependencies?.swiper, '14.2.0')
+})
+
+test('image host config is omitted cleanly when SUPABASE_HOSTNAME is absent', () => {
+  assert.doesNotMatch(nextConfig, /domains:\s*\[process\.env\.SUPABASE_HOSTNAME\]/)
+  assert.match(nextConfig, /supabaseHostname\s*\?\s*\{/)
+  assert.match(nextConfig, /remotePatterns/)
 })
