@@ -2,10 +2,13 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
 
-const pkg = JSON.parse(
-  await readFile(new URL('../package.json', import.meta.url), 'utf8')
-)
-const nextConfig = await readFile(new URL('../next.config.js', import.meta.url), 'utf8')
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
+const pkg = JSON.parse(await read('package.json'))
+const nextConfig = await read('next.config.js')
+const supabaseClient = await read('lib/supabase.ts')
+const integrationsPage = await read('pages/partners/integrations/index.tsx')
+const expertsPage = await read('pages/partners/experts/index.tsx')
+const partnerPage = await read('pages/partners/[slug].tsx')
 
 test('partner gallery uses a patched supported Next runtime', () => {
   assert.equal(pkg.dependencies?.next, '15.5.24')
@@ -30,4 +33,13 @@ test('image host config is omitted cleanly when SUPABASE_HOSTNAME is absent', ()
   assert.doesNotMatch(nextConfig, /domains:\s*\[process\.env\.SUPABASE_HOSTNAME\]/)
   assert.match(nextConfig, /supabaseHostname\s*\?\s*\{/)
   assert.match(nextConfig, /remotePatterns/)
+})
+
+test('public Supabase client is optional so builds do not require runtime env', () => {
+  assert.doesNotMatch(supabaseClient, /NEXT_PUBLIC_SUPABASE_URL!|NEXT_PUBLIC_SUPABASE_ANON_KEY!/)
+  assert.match(supabaseClient, /supabaseUrl\s*&&\s*supabaseAnonKey/)
+  assert.match(supabaseClient, /createClient/)
+  assert.match(integrationsPage, /if \(!supabase\)/)
+  assert.match(expertsPage, /if \(!supabase\)/)
+  assert.match(partnerPage, /if \(!supabase\)/)
 })
