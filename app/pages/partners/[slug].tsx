@@ -155,6 +155,10 @@ function PartnerPage({ partner }: { partner: Partner }) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
+  if (!supabase) {
+    return { paths: [], fallback: 'blocking' }
+  }
+
   const { data: slugs } = await supabase.from<Partner>('partners').select('slug')
 
   return {
@@ -164,6 +168,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
+  if (!supabase) {
+    return { notFound: true }
+  }
+
   const { data: partner } = await supabase
     .from<Partner>('partners')
     .select('*')
