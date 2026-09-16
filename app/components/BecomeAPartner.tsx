@@ -30,7 +30,7 @@ const validate = (values: any) => {
   return errors
 }
 
-export default function BecomeAPartner() {
+export default function BecomeAPartner(_props: { supabase?: unknown }) {
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
