@@ -10,6 +10,11 @@ test('partner gallery uses a patched supported Next runtime', () => {
   assert.equal(pkg.dependencies?.next, '15.5.24')
   assert.equal(pkg.dependencies?.react, '18.2.0')
   assert.equal(pkg.dependencies?.['react-dom'], '18.2.0')
+  assert.equal(pkg.engines?.node, '22.x')
+})
+
+test('known vulnerable transitive PostCSS range is overridden', () => {
+  assert.equal(pkg.overrides?.postcss, '8.5.28')
 })
 
 test('unused vulnerable Swiper runtime dependency is removed', () => {
