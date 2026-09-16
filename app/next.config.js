@@ -1,9 +1,16 @@
+const supabaseHostname = process.env.SUPABASE_HOSTNAME?.trim()
+
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: true,
-  images: {
-    domains: [process.env.SUPABASE_HOSTNAME],
-  },
+  images: supabaseHostname ? {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: supabaseHostname,
+      },
+    ],
+  } : {},
   async redirects() {
     return [
       {
@@ -11,7 +18,6 @@ module.exports = {
         source: '/',
         destination: '/partners/integrations',
       },
-      // Have integrations as the default partners page
       {
         permanent: false,
         source: '/partners',
