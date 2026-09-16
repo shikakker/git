@@ -17,6 +17,10 @@ test('known vulnerable transitive PostCSS range is overridden', () => {
   assert.equal(pkg.overrides?.postcss, '8.5.28')
 })
 
-test('unused vulnerable Swiper runtime dependency is removed', () => {
-  assert.equal(pkg.dependencies?.swiper, undefined)
+test('deprecated React 17-only Supabase UI package is removed', () => {
+  assert.equal(pkg.dependencies?.['@supabase/ui'], undefined)
+})
+
+test('used Swiper carousel is upgraded beyond the vulnerable range', () => {
+  assert.equal(pkg.dependencies?.swiper, '14.2.0')
 })
