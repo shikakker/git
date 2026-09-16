@@ -12,6 +12,7 @@ export interface Partner {
   website: string
   docs: string
   approved: boolean
+  tsv?: string
 }
 
 export interface PartnerContact {
