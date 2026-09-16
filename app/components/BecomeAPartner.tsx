@@ -1,8 +1,6 @@
-import { SupabaseClient } from '@supabase/supabase-js'
 import { Button, Form, Input, InputNumber, Select } from '@supabase/ui'
 import { useState } from 'react'
 import countries from '~/data/Countries.json'
-import { PartnerContact } from '~/types/partners'
 
 const INITIAL_VALUES = {
   type: 'expert',
@@ -20,50 +18,51 @@ const INITIAL_VALUES = {
 const validate = (values: any) => {
   const errors: any = {}
 
-  if (!values.first) {
-    errors.first = 'Required'
-  }
+  if (!values.first?.trim()) errors.first = 'Required'
+  if (!values.last?.trim()) errors.last = 'Required'
 
-  if (!values.last) {
-    errors.last = 'Required'
-  }
-
-  if (!values.email) {
+  if (!values.email?.trim()) {
     errors.email = 'Required'
-  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
+  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email.trim())) {
     errors.email = 'Invalid email address'
   }
 
   return errors
 }
 
-export default function BecomeAPartner({ supabase }: { supabase: SupabaseClient }) {
-  const [formSubmitted, setFormSubmitted] = useState<boolean>(false)
+export default function BecomeAPartner() {
+  const [formSubmitted, setFormSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const handleFormSubmit = async (values: any) => {
-    const { error } = await supabase.from<PartnerContact>('partner_contacts').insert(
-      [
-        {
+    setSubmitError('')
+
+    try {
+      const response = await fetch('/api/partner-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           type: values.type,
           first: values.first,
           last: values.last,
           company: values.company,
-          size: Number(values.size),
+          size: values.size,
           title: values.title,
           email: values.email,
-          website: values.email.split('@')[1],
           phone: values.phone,
           country: values.country,
           details: values.details,
-        },
-      ],
-      { returning: 'minimal' }
-    )
+        }),
+      })
 
-    // TODO: handle error
-    console.log('error:', error)
+      if (!response.ok) {
+        throw new Error('Partner application request failed')
+      }
 
-    setFormSubmitted(true)
+      setFormSubmitted(true)
+    } catch {
+      setSubmitError('We could not submit your application. Please review your details and try again.')
+    }
   }
 
   return (
@@ -90,82 +89,35 @@ export default function BecomeAPartner({ supabase }: { supabase: SupabaseClient 
               </div>
 
               <div className="h-24">
-                <Input
-                  label="First Name *"
-                  id="first"
-                  name="first"
-                  layout="vertical"
-                  placeholder="Jane"
-                />
+                <Input label="First Name *" id="first" name="first" layout="vertical" placeholder="Jane" />
               </div>
 
               <div className="h-24">
-                <Input
-                  label="Last Name *"
-                  id="last"
-                  name="last"
-                  layout="vertical"
-                  placeholder="Doe"
-                />
+                <Input label="Last Name *" id="last" name="last" layout="vertical" placeholder="Doe" />
               </div>
 
               <div className="h-24">
-                <Input
-                  label="Company Name"
-                  id="company"
-                  name="company"
-                  layout="vertical"
-                  placeholder="Supa Inc."
-                />
+                <Input label="Company Name" id="company" name="company" layout="vertical" placeholder="Supa Inc." />
               </div>
 
               <div className="h-24">
-                <InputNumber
-                  label="Company Size"
-                  id="size"
-                  name="size"
-                  layout="vertical"
-                  placeholder="1"
-                />
+                <InputNumber label="Company Size" id="size" name="size" layout="vertical" placeholder="1" />
               </div>
 
               <div className="h-24">
-                <Input
-                  label="Job Title"
-                  id="title"
-                  name="title"
-                  layout="vertical"
-                  placeholder="CEO"
-                />
+                <Input label="Job Title" id="title" name="title" layout="vertical" placeholder="CEO" />
               </div>
 
               <div className="h-24">
-                <Input
-                  label="Business email *"
-                  id="email"
-                  name="email"
-                  layout="vertical"
-                  placeholder="janedoe@example.sg"
-                />
+                <Input label="Business email *" id="email" name="email" layout="vertical" placeholder="janedoe@example.sg" />
               </div>
 
               <div className="h-24">
-                <Input
-                  label="Phone Number"
-                  id="phone"
-                  name="phone"
-                  layout="vertical"
-                  placeholder="+65 1234 1234"
-                />
+                <Input label="Phone Number" id="phone" name="phone" layout="vertical" placeholder="+65 1234 1234" />
               </div>
 
               <div className="h-24">
-                <Select
-                  label="Country / Main Timezone"
-                  id="country"
-                  name="country"
-                  layout="vertical"
-                >
+                <Select label="Country / Main Timezone" id="country" name="country" layout="vertical">
                   {countries.map(({ code, name }) => (
                     <Select.Option key={code} value={code}>{name}</Select.Option>
                   ))}
@@ -182,6 +134,12 @@ export default function BecomeAPartner({ supabase }: { supabase: SupabaseClient 
                 />
               </div>
 
+              {submitError && (
+                <div className="col-span-2 pt-4" role="alert">
+                  <p className="text-sm text-red-600">{submitError}</p>
+                </div>
+              )}
+
               <div className="flex flex-row-reverse w-full col-span-2 pt-4">
                 <Button
                   size="xlarge"
@@ -196,7 +154,9 @@ export default function BecomeAPartner({ supabase }: { supabase: SupabaseClient 
           )}
         </Form>
 
-        {formSubmitted && <h3 className="h3">Thanks, we'll reach out to you shortly 👁⚡️👁</h3>}
+        {formSubmitted && (
+          <h3 className="h3" role="status">Thanks, we'll reach out to you shortly 👁⚡️👁</h3>
+        )}
       </div>
     </div>
   )
