@@ -27,6 +27,23 @@ test('server contact endpoint validates method, input and server-only Supabase c
   assert.match(api, /status\(503\)/)
 })
 
+test('partner-contact rejects cross-site and non-JSON writes before validation or service-role setup', () => {
+  const originGuard = api.indexOf('requestIsSameOrigin(req)')
+  const jsonGuard = api.indexOf('isJsonRequest(req)')
+  const validation = api.indexOf('validatePartnerContact(req.body)')
+  const serviceRole = api.indexOf('process.env.SUPABASE_SERVICE_ROLE_KEY')
+
+  assert.match(api, /sec-fetch-site/i)
+  assert.match(api, /x-forwarded-host/i)
+  assert.match(api, /CROSS_ORIGIN_REQUEST/)
+  assert.match(api, /UNSUPPORTED_MEDIA_TYPE/)
+  assert.ok(originGuard >= 0 && jsonGuard > originGuard)
+  assert.ok(validation > jsonGuard)
+  assert.ok(serviceRole > validation)
+  assert.match(api, /status\(403\)/)
+  assert.match(api, /status\(415\)/)
+})
+
 test('partner-contact API is non-cacheable and does not return raw provider errors', () => {
   assert.match(api, /Cache-Control/)
   assert.match(api, /private, no-store/)
