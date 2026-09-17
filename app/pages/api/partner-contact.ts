@@ -21,6 +21,37 @@ function text(value: unknown, max: number, required = false) {
   return normalized
 }
 
+function firstHeader(req: NextApiRequest, name: string): string {
+  const raw = req.headers[name.toLowerCase()]
+  if (Array.isArray(raw)) return raw[0] || ''
+  return raw || ''
+}
+
+function requestIsSameOrigin(req: NextApiRequest): boolean {
+  const fetchSite = firstHeader(req, 'sec-fetch-site').trim().toLowerCase()
+  if (fetchSite === 'cross-site') return false
+
+  const origin = firstHeader(req, 'origin').trim()
+  if (!origin) return true
+
+  const forwardedHost = firstHeader(req, 'x-forwarded-host').split(',', 1)[0].trim()
+  const host = forwardedHost || firstHeader(req, 'host').trim()
+  if (!host) return false
+
+  try {
+    return new URL(origin).host.toLowerCase() === host.toLowerCase()
+  } catch {
+    return false
+  }
+}
+
+function isJsonRequest(req: NextApiRequest): boolean {
+  return firstHeader(req, 'content-type')
+    .split(';', 1)[0]
+    .trim()
+    .toLowerCase() === 'application/json'
+}
+
 function validatePartnerContact(body: unknown): PartnerContactInput | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   const input = body as Record<string, unknown>
@@ -74,6 +105,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
     return res.status(405).json({ error: 'METHOD_NOT_ALLOWED' })
+  }
+
+  if (!requestIsSameOrigin(req)) {
+    return res.status(403).json({ error: 'CROSS_ORIGIN_REQUEST' })
+  }
+
+  if (!isJsonRequest(req)) {
+    return res.status(415).json({ error: 'UNSUPPORTED_MEDIA_TYPE' })
   }
 
   const input = validatePartnerContact(req.body)
