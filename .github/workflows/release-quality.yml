@@ -1,0 +1,34 @@
+name: Release Quality
+
+on:
+  push:
+    branches: [portfolio-improvements-2026-08]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Frozen install
+        run: npm ci
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+      - name: Regression contracts
+        run: npm test
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build

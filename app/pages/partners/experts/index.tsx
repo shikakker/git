@@ -8,6 +8,13 @@ import supabase from '~/lib/supabase'
 import { Partner } from '~/types/partners'
 
 export async function getStaticProps() {
+  if (!supabase) {
+    return {
+      props: { partners: [] },
+      revalidate: 18000,
+    }
+  }
+
   const { data: partners } = await supabase
     .from<Partner>('partners')
     .select('*')
@@ -18,9 +25,9 @@ export async function getStaticProps() {
 
   return {
     props: {
-      partners,
+      partners: partners ?? [],
     },
-    revalidate: 18000, // In seconds - refresh every 5 hours
+    revalidate: 18000,
   }
 }
 
@@ -28,107 +35,78 @@ interface Props {
   partners: Partner[]
 }
 
-function ExpertPartnersPage(props: Props) {
-  const { partners } = props
+function ExpertPartnersPage({ partners }: Props) {
   const partnersByCategory: { [category: string]: Partner[] } = {}
-  partners.map(
-    (p) =>
-      (partnersByCategory[p.category] = [
-        ...(partnersByCategory[p.category] ?? []),
-        p,
-      ])
-  )
+  partners.forEach((partner) => {
+    partnersByCategory[partner.category] = [
+      ...(partnersByCategory[partner.category] ?? []),
+      partner,
+    ]
+  })
 
-  const meta_title = 'Find an expert'
-  const meta_description = `Find an expert to help build your next idea.`
+  const metaTitle = 'Find an expert'
+  const metaDescription = 'Find an expert to help build your next idea.'
 
   return (
     <>
       <Head>
-        <title>{meta_title} | Supabase Partner Gallery Example</title>
-        <meta name="description" content={meta_description}></meta>
+        <title>{metaTitle} | Supabase Partner Gallery Example</title>
+        <meta name="description" content={metaDescription} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>
         <SectionContainer className="space-y-12">
           <div>
-            <h1 className="h1">{meta_title}</h1>
-            <h2 className="text-xl text-scale-900">{meta_description}</h2>
+            <h1 className="h1">{metaTitle}</h1>
+            <h2 className="text-xl text-scale-900">{metaDescription}</h2>
           </div>
-          <div className="grid grid-cols-12 lg:gap-16 xl:gap-32">
-            <div className="col-span-3">
-              {/* Horizontal link menu */}
+          <div className="grid gap-8 lg:grid-cols-12 lg:gap-16 xl:gap-32">
+            <div className="lg:col-span-3">
               <div className="space-y-6">
-                {/* Search Bar */}
                 <div className="space-y-4">
-                  <div className="mb-2 text-sm text-scale-900">
-                    Explore more
-                  </div>
+                  <div className="mb-2 text-sm text-scale-900">Explore more</div>
                   <PartnerLinkBox
                     title="Integrations"
                     color="blue"
                     description="Extend and automate your workflow by using integrations for your favorite tools."
-                    href={`/partners/integrations`}
+                    href="/partners/integrations"
                     icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="1"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
                       </svg>
                     }
                   />
                   <PartnerLinkBox
                     title="Become a partner"
                     color="brand"
-                    description="Fill out a quick 30 second form to apply to become a partner"
-                    href={`/partners/integrations#become-a-partner`}
+                    description="Fill out a quick form to apply to become a partner"
+                    href="/partners/integrations#become-a-partner"
                     icon={
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="1"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                        />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
                     }
                   />
                 </div>
               </div>
             </div>
-            <div className="col-span-9">
-              {/* Partner Tiles */}
+            <div className="lg:col-span-9">
               <div className="grid">
                 {partners.length ? (
-                  <PartnerTileGrid
-                    partnersByCategory={partnersByCategory}
-                    hideCategories={true}
-                  />
+                  <PartnerTileGrid partnersByCategory={partnersByCategory} hideCategories />
                 ) : (
-                  <h2 className="h2">No Partners Found</h2>
+                  <div className="rounded-md border border-scale-500 bg-scale-100 p-6" role="status">
+                    <h2 className="h2">No Partners Found</h2>
+                    <p className="mt-2 text-sm text-scale-900">
+                      The partner directory may be empty or its data source may not be configured for this deployment.
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
           </div>
-
-          {/* Become a partner form */}
         </SectionContainer>
-        <BecomeAPartner supabase={supabase} />
+        <BecomeAPartner />
       </Layout>
     </>
   )
